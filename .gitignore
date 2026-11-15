@@ -1,3 +1,4 @@
 .spotify_token.json
 export/
 __pycache__/
+test*
