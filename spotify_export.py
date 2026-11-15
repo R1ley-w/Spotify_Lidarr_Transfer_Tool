@@ -23,6 +23,20 @@ import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
 
+def _use_system_certificates():
+    """Python from python.org on macOS ships without root certificates, so every
+    HTTPS request fails until "Install Certificates.command" is run. Fall back to
+    the bundle macOS itself provides."""
+    import ssl
+    ctx = ssl.create_default_context()
+    if ctx.cert_store_stats()["x509_ca"] == 0 and os.path.exists("/etc/ssl/cert.pem"):
+        ctx.load_verify_locations("/etc/ssl/cert.pem")
+        urllib.request.install_opener(
+            urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx)))
+
+
+_use_system_certificates()
+
 API_BASE = os.environ.get("SPOTIFY_API_BASE", "https://api.spotify.com/v1")
 ACCOUNTS_BASE = os.environ.get("SPOTIFY_ACCOUNTS_BASE", "https://accounts.spotify.com")
 SCOPES = "playlist-read-private playlist-read-collaborative user-library-read user-follow-read"
